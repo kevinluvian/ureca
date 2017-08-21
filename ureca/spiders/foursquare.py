@@ -42,28 +42,48 @@ class FoursquareSpider(Spider):
     # Fetch the first url (which is NTU) and spread from there
     def start_requests(self):
         # TODO: make it the smallest depth and parsed = False trus di FOR
-        venue = (
-            generate_url_venue_detail('4b442617f964a5200af225e3'),
-            '4b442617f964a5200af225e3',
-        )
-        yield Request(
-            url=venue[0],
-            callback=lambda x, depth=1, venue_id=venue[1]: self.parse(x, depth, venue_id),
-        )
+        venue_list = self.collection.find({ 'is_child_parsed': False }).sort('depth', 1)
+        venue_count = venue_list.count()
+        for venue_obj in venue_list:
+            venue = (
+                generate_url_venue_detail(venue_obj['venue_id']),
+                venue_obj['venue_id'],
+            )
+            print(venue_obj['name'])
+            yield Request(
+                url=venue[0],
+                callback=lambda x, depth=1, venue_id=venue[1]: self.parse(x, depth, venue_id),
+            )
+        if venue_count == 0:
+            venue = (
+                generate_url_venue_detail('4b442617f964a5200af225e3'),
+                '4b442617f964a5200af225e3',
+            )
+            yield Request(
+                url=venue[0],
+                callback=lambda x, depth=1, venue_id=venue[1]: self.parse(x, depth, venue_id),
+            )
 
     def parse(self, response, depth, venue_id):
         # TODO: validate if the data is not in the db
+        count_venue_parsed = self.collection.find({ 'venue_id': venue_id, 'is_child_parsed': True }).count()
+        if count_venue_parsed > 0:
+            return
         if depth < self.MAX_DEPTH:
             try:
                 response_data = json.loads(response.body.decode('utf-8'))
                 venue = response_data['response']['venue']
-                loader = ItemLoader(item=Foursquare(), response=response)
-                loader.add_value('venue_id', venue['id'])
-                loader.add_value('name', venue['name'])
-                loader.add_value('is_child_parsed', False)
-                loader.add_value('raw_data', venue)
-                loader.add_value('depth', depth)
-                yield loader.load_item()
+
+                count_venue = self.collection.find({ 'venue_id': venue_id }).count()
+                if count_venue == 0:
+                    loader = ItemLoader(item=Foursquare(), response=response)
+                    loader.add_value('venue_id', venue['id'])
+                    loader.add_value('name', venue['name'])
+                    loader.add_value('is_child_parsed', False)
+                    loader.add_value('raw_data', venue)
+                    loader.add_value('depth', depth)
+                    yield loader.load_item()
+
                 if depth + 1 < self.MAX_DEPTH:
                     yield Request(
                         generate_url_next_venues(venue_id),
