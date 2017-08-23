@@ -1,0 +1,65 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+BOT_NAME	../settings.py	/^BOT_NAME = 'ureca'$/;"	kind:variable	line:12
+Foursquare	../items.py	/^class Foursquare(scrapy.Item):$/;"	kind:class	line:18
+Foursquare	../spiders/foursquare.py	/^from ureca.items import Foursquare$/;"	kind:namespace	line:8
+FoursquareSpider	../spiders/foursquare.py	/^class FoursquareSpider(Spider):$/;"	kind:class	line:28
+ITEM_PIPELINES	../settings.py	/^ITEM_PIPELINES = {$/;"	kind:variable	line:67
+ItemLoader	../spiders/foursquare.py	/^from scrapy.loader import ItemLoader$/;"	kind:namespace	line:7
+MAX_DEPTH	../spiders/foursquare.py	/^    MAX_DEPTH = 20$/;"	kind:variable	line:31
+MongoPipeline	../pipelines.py	/^class MongoPipeline(object):$/;"	kind:class	line:15
+NEWSPIDER_MODULE	../settings.py	/^NEWSPIDER_MODULE = 'ureca.spiders'$/;"	kind:variable	line:15
+ROBOTSTXT_OBEY	../settings.py	/^ROBOTSTXT_OBEY = True$/;"	kind:variable	line:22
+Request	../spiders/foursquare.py	/^from scrapy import Spider, Request$/;"	kind:namespace	line:6
+SPIDER_MODULES	../settings.py	/^SPIDER_MODULES = ['ureca.spiders']$/;"	kind:variable	line:14
+Spider	../spiders/foursquare.py	/^from scrapy import Spider, Request$/;"	kind:namespace	line:6
+TakeFirst	../items.py	/^from scrapy.contrib.loader.processor import TakeFirst$/;"	kind:namespace	line:9
+UrecaItem	../items.py	/^class UrecaItem(scrapy.Item):$/;"	kind:class	line:12
+UrecaPipeline	../pipelines.py	/^class UrecaPipeline(object):$/;"	kind:class	line:10
+UrecaSpiderMiddleware	../middlewares.py	/^class UrecaSpiderMiddleware(object):$/;"	kind:class	line:11
+__init__	../pipelines.py	/^    def __init__(self):$/;"	kind:member	line:18
+__init__	../spiders/foursquare.py	/^    def __init__(self):$/;"	kind:member	line:33
+__init__.py	../__init__.py	1;"	kind:file	line:1
+__init__.py	../spiders/__init__.py	1;"	kind:file	line:1
+allowed_domains	../spiders/foursquare.py	/^    allowed_domains = ['foursquare.com']$/;"	kind:variable	line:30
+close_spider	../pipelines.py	/^    def close_spider(self, spider):$/;"	kind:member	line:28
+closed	../spiders/foursquare.py	/^    def closed(self, reason):$/;"	kind:member	line:42
+collection_name	../pipelines.py	/^    collection_name = 'parsed_data_raw'$/;"	kind:variable	line:16
+depth	../items.py	/^    depth = scrapy.Field(output_processor=TakeFirst())$/;"	kind:variable	line:23
+foursquare.py	../spiders/foursquare.py	1;"	kind:file	line:1
+from_crawler	../middlewares.py	/^    def from_crawler(cls, crawler):$/;"	kind:member	line:17
+generate_url_explore_venues	../spiders/foursquare.py	/^def generate_url_explore_venues(latitude, longitude):$/;"	kind:function	line:24
+generate_url_next_venues	../spiders/foursquare.py	/^def generate_url_next_venues(venue_id):$/;"	kind:function	line:20
+generate_url_venue_detail	../spiders/foursquare.py	/^def generate_url_venue_detail(venue_id):$/;"	kind:function	line:16
+is_child_parsed	../items.py	/^    is_child_parsed = scrapy.Field(output_processor=TakeFirst())$/;"	kind:variable	line:24
+items.py	../items.py	1;"	kind:file	line:1
+json	../spiders/foursquare.py	/^import json$/;"	kind:namespace	line:3
+middlewares.py	../middlewares.py	1;"	kind:file	line:1
+name	../items.py	/^    name = scrapy.Field(output_processor=TakeFirst())$/;"	kind:variable	line:21
+name	../spiders/foursquare.py	/^    name = 'foursquare'$/;"	kind:variable	line:29
+open_spider	../pipelines.py	/^    def open_spider(self, spider):$/;"	kind:member	line:23
+parse	../spiders/foursquare.py	/^    def parse(self, response, depth, venue_id):$/;"	kind:member	line:83
+parse_explore_venues	../spiders/foursquare.py	/^    def parse_explore_venues(self, response, depth, venue_id):$/;"	kind:member	line:124
+parse_next_venues	../spiders/foursquare.py	/^    def parse_next_venues(self, response, depth, venue_id):$/;"	kind:member	line:140
+pdb	../pipelines.py	/^import pdb$/;"	kind:namespace	line:8
+pipelines.py	../pipelines.py	1;"	kind:file	line:1
+process_item	../pipelines.py	/^    def process_item(self, item, spider):$/;"	kind:member	line:11
+process_item	../pipelines.py	/^    def process_item(self, item, spider):$/;"	kind:member	line:31
+process_spider_exception	../middlewares.py	/^    def process_spider_exception(self, response, exception, spider):$/;"	kind:member	line:38
+process_spider_input	../middlewares.py	/^    def process_spider_input(self, response, spider):$/;"	kind:member	line:23
+process_spider_output	../middlewares.py	/^    def process_spider_output(self, response, result, spider):$/;"	kind:member	line:30
+process_start_requests	../middlewares.py	/^    def process_start_requests(self, start_requests, spider):$/;"	kind:member	line:46
+pymongo	../pipelines.py	/^import pymongo$/;"	kind:namespace	line:7
+pymongo	../spiders/foursquare.py	/^import pymongo$/;"	kind:namespace	line:4
+raw_data	../items.py	/^    raw_data = scrapy.Field(output_processor=TakeFirst())$/;"	kind:variable	line:22
+scrapy	../items.py	/^import scrapy$/;"	kind:namespace	line:8
+settings.py	../settings.py	1;"	kind:file	line:1
+signals	../middlewares.py	/^from scrapy import signals$/;"	kind:namespace	line:8
+spider_opened	../middlewares.py	/^    def spider_opened(self, spider):$/;"	kind:member	line:55
+start_requests	../spiders/foursquare.py	/^    def start_requests(self):$/;"	kind:member	line:47
+update_complete_parse	../spiders/foursquare.py	/^    def update_complete_parse(self, venue_id):$/;"	kind:member	line:152
+venue_id	../items.py	/^    venue_id = scrapy.Field(output_processor=TakeFirst())$/;"	kind:variable	line:20

@@ -5,6 +5,7 @@ import pymongo
 
 from scrapy import Spider, Request
 from scrapy.loader import ItemLoader
+from scrapy.exceptions import CloseSpider
 from ureca.items import Foursquare
 
 
@@ -12,28 +13,33 @@ sql_update_parsed = '''
 UPDATE `parsed_data` SET parsed=true WHERE venue_id=%s;
 '''
 
+
 def generate_url_venue_detail(venue_id):
     return 'https://api.foursquare.com/v2/venues/{}?client_id=LFZ3GZTEM34B1NTKJMZHNRWICA1GF5CWGJBR5UP503OU00WK&client_secret=EBAFOC3RUESHDWM4XUKCSOCSCUTZ32FN2C2YFRDSAIJT2HEF&v=20170818'.format(venue_id)
+
 
 def generate_url_next_venues(venue_id):
     return 'https://api.foursquare.com/v2/venues/{}/nextvenues?client_id=LFZ3GZTEM34B1NTKJMZHNRWICA1GF5CWGJBR5UP503OU00WK&client_secret=EBAFOC3RUESHDWM4XUKCSOCSCUTZ32FN2C2YFRDSAIJT2HEF&v=20170818'.format(venue_id)
 
+
 def generate_url_explore_venues(latitude, longitude):
     return 'https://api.foursquare.com/v2/venues/explore?ll={},{}&client_id=LFZ3GZTEM34B1NTKJMZHNRWICA1GF5CWGJBR5UP503OU00WK&client_secret=EBAFOC3RUESHDWM4XUKCSOCSCUTZ32FN2C2YFRDSAIJT2HEF&v=20170818'.format(latitude, longitude)
+
 
 class FoursquareSpider(Spider):
     name = 'foursquare'
     allowed_domains = ['foursquare.com']
+    handle_httpstatus_list = [403]
     MAX_DEPTH = 20
 
     def __init__(self):
-		self.mongo_host = 'localhost'
-		self.mongo_port = 27017
-		self.mongo_db = 'ureca'
-		self.collection_name = 'parsed_data_raw'
-		self.client = pymongo.MongoClient(self.mongo_host, self.mongo_port)
-		self.db = self.client[self.mongo_db]
-		self.collection = self.db[self.collection_name]
+        self.mongo_host = 'localhost'
+        self.mongo_port = 27017
+        self.mongo_db = 'ureca'
+        self.collection_name = 'parsed_data_raw'
+        self.client = pymongo.MongoClient(self.mongo_host, self.mongo_port)
+        self.db = self.client[self.mongo_db]
+        self.collection = self.db[self.collection_name]
 
     def closed(self, reason):
         self.client.close()
@@ -42,7 +48,14 @@ class FoursquareSpider(Spider):
     # Fetch the first url (which is NTU) and spread from there
     def start_requests(self):
         # TODO: make it the smallest depth and parsed = False trus di FOR
-        venue_list = self.collection.find({ 'is_child_parsed': False }).sort('depth', 1)
+        venue_list = self.collection \
+            .find({
+                '$or': [
+                    {'is_child_next_venue_parsed': False},
+                    {'is_child_explore_parsed': False}
+                ]
+            }) \
+            .sort('depth', 1)
         venue_count = venue_list.count()
         for venue_obj in venue_list:
             venue = (
@@ -50,10 +63,20 @@ class FoursquareSpider(Spider):
                 venue_obj['venue_id'],
             )
             print(venue_obj['name'])
-            yield Request(
-                url=venue[0],
-                callback=lambda x, depth=1, venue_id=venue[1]: self.parse(x, depth, venue_id),
-            )
+            venue_raw_obj = venue_obj['raw_data']
+            if venue_obj['is_child_explore_parsed'] is False and 'location' in venue_raw_obj and 'lat' in venue_raw_obj['location'] and 'lng' in venue_raw_obj['location']:
+                yield Request(
+                    generate_url_explore_venues(
+                        venue_raw_obj['location']['lat'],
+                        venue_raw_obj['location']['lng']
+                    ),
+                    callback=lambda x, depth=venue_obj['depth'], venue_id=venue_obj['venue_id']: self.parse_explore_venues(x, depth, venue_id),
+                )
+            if venue_obj['is_child_next_venue_parsed'] is False:
+                yield Request(
+                    generate_url_next_venues(venue_obj['venue_id']),
+                    callback=lambda x, depth=venue_obj['depth'], venue_id=venue_obj['venue_id']: self.parse_next_venues(x, depth, venue_id),
+                )
         if venue_count == 0:
             venue = (
                 generate_url_venue_detail('4b442617f964a5200af225e3'),
@@ -65,8 +88,16 @@ class FoursquareSpider(Spider):
             )
 
     def parse(self, response, depth, venue_id):
+        print('PARSE ', venue_id)
         # TODO: validate if the data is not in the db
-        count_venue_parsed = self.collection.find({ 'venue_id': venue_id, 'is_child_parsed': True }).count()
+        if response.status == 403:
+            raise CloseSpider('Bandwith exceeded')
+        count_venue_parsed = self.collection.find({
+                'venue_id': venue_id,
+                'is_child_next_venue_parsed': True,
+                'is_child_explore_parsed': True
+            }).count()
+
         if count_venue_parsed > 0:
             return
         if depth < self.MAX_DEPTH:
@@ -74,55 +105,79 @@ class FoursquareSpider(Spider):
                 response_data = json.loads(response.body.decode('utf-8'))
                 venue = response_data['response']['venue']
 
-                count_venue = self.collection.find({ 'venue_id': venue_id }).count()
+                count_venue = self.collection \
+                    .find({'venue_id': venue_id}) \
+                    .count()
                 if count_venue == 0:
                     loader = ItemLoader(item=Foursquare(), response=response)
                     loader.add_value('venue_id', venue['id'])
                     loader.add_value('name', venue['name'])
-                    loader.add_value('is_child_parsed', False)
+                    loader.add_value('is_child_next_venue_parsed', False)
+                    loader.add_value('is_child_explore_parsed', False)
                     loader.add_value('raw_data', venue)
                     loader.add_value('depth', depth)
                     yield loader.load_item()
 
                 if depth + 1 < self.MAX_DEPTH:
+                    if 'location' in venue and 'lat' in venue['location'] and 'lng' in venue['location']:
+                        yield Request(
+                            generate_url_explore_venues(
+                                venue['location']['lat'],
+                                venue['location']['lng']
+                            ),
+                            callback=lambda x, depth=depth, venue_id=venue_id: self.parse_explore_venues(x, depth, venue_id),
+                        )
                     yield Request(
                         generate_url_next_venues(venue_id),
                         callback=lambda x, depth=depth, venue_id=venue_id: self.parse_next_venues(x, depth, venue_id),
                     )
-                    if 'location' in venue and 'lat' in venue['location'] and 'lng' in venue['location']:
-                        yield Request(
-                            generate_url_explore_venues(venue['location']['lat'], venue['location']['lng']),
-                            callback=lambda x, depth=depth, venue_id=venue_id: self.parse_explore_venues(x, depth, venue_id),
-                        )
-                    yield self.update_complete_parse(venue_id=venue_id)
-
-            except Exception as e:
+            except Exception:
                 pass
 
     def parse_explore_venues(self, response, depth, venue_id):
+        if response.status == 403:
+            raise CloseSpider('Bandwith exceeded')
         try:
             response_data = json.loads(response.body.decode('utf-8'))
             venue_groups = response_data['response']['groups']
             for venue_group in venue_groups:
                 for item in venue_group['items']:
-                    yield Request(
-                        generate_url_venue_detail(item['venue']['id']),
-                        callback=lambda x, depth=depth + 1, venue_id=item['venue']['id']: self.parse(x, depth, venue_id)
-                    )
-        except Exception as e:
+                    count_venue_parsed = self.collection.find(
+                        {'venue_id': item['venue']['id']}).count()
+                    if count_venue_parsed == 0:
+                        yield Request(
+                            generate_url_venue_detail(item['venue']['id']),
+                            callback=lambda x, depth=depth + 1, venue_id=item['venue']['id']: self.parse(x, depth, venue_id)
+                        )
+            yield self.update_complete_parse_explore(venue_id)
+        except Exception:
             pass
 
     def parse_next_venues(self, response, depth, venue_id):
+        if response.status == 403:
+            raise CloseSpider('Bandwith exceeded')
         try:
             response_data = json.loads(response.body.decode('utf-8'))
             next_venues = response_data['response']['nextVenues']
             for item in next_venues['items']:
                 yield Request(
                     generate_url_venue_detail(item['id']),
-                    callback=lambda x, depth=depth + 1, venue_id=item['id']:self.parse(x, depth, venue_id)
+                    callback=lambda x, depth=depth + 1, venue_id=item['id']: self.parse(x, depth, venue_id)
                 )
-        except Exception as e:
+            yield self.update_complete_parse_next(venue_id)
+        except Exception:
             pass
 
-    def update_complete_parse(self, venue_id):
-    	self.collection.update_one({ 'venue_id': venue_id }, { '$set': { 'is_child_parsed': True } }, upsert=False)
+    def update_complete_parse_explore(self, venue_id):
+        self.collection.update_one(
+            {'venue_id': venue_id},
+            {'$set': {'is_child_explore_parsed': True}},
+            upsert=False
+        )
+
+    def update_complete_parse_next(self, venue_id):
+        self.collection.update_one(
+            {'venue_id': venue_id},
+            {'$set': {'is_child_next_venue_parsed': True}},
+            upsert=False
+        )

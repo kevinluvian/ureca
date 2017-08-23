@@ -21,5 +21,6 @@ class Foursquare(scrapy.Item):
     name = scrapy.Field(output_processor=TakeFirst())
     raw_data = scrapy.Field(output_processor=TakeFirst())
     depth = scrapy.Field(output_processor=TakeFirst())
-    is_child_parsed = scrapy.Field(output_processor=TakeFirst())
+    is_child_next_venue_parsed = scrapy.Field(output_processor=TakeFirst())
+    is_child_explore_parsed = scrapy.Field(output_processor=TakeFirst())
     pass
