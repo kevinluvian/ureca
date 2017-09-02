@@ -48,6 +48,7 @@ class FoursquareSpider(Spider):
     # Fetch the first url (which is NTU) and spread from there
     def start_requests(self):
         # TODO: make it the smallest depth and parsed = False trus di FOR
+        self.collection.create_index([('depth', pymongo.ASCENDING)], background=True)
         venue_list = self.collection \
             .find({
                 '$or': [
