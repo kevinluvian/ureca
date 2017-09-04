@@ -44,7 +44,7 @@ class FoursquareSpider(Spider):
 
     def closed(self, reason):
         self.client.close()
-        self.logger.info('reason: ', reason)
+        self.logger.info('reason: {}'.format(reason))
 
     # Fetch the first url (which is NTU) and spread from there
     def start_requests(self):
@@ -93,7 +93,7 @@ class FoursquareSpider(Spider):
             )
 
     def parse(self, response, depth, venue_id):
-        self.logger.info('PARSE ', venue_id)
+        self.logger.info('PARSE {}'.format(venue_id))
         # TODO: validate if the data is not in the db
         if response.status == 403:
             raise CloseSpider('Bandwith exceeded')
