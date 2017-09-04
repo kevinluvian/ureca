@@ -2,6 +2,7 @@
 import pdb
 import json
 import pymongo
+import logging
 
 from scrapy import Spider, Request
 from scrapy.loader import ItemLoader
@@ -43,7 +44,7 @@ class FoursquareSpider(Spider):
 
     def closed(self, reason):
         self.client.close()
-        print('reason: ', reason)
+        self.logger.info('reason: ', reason)
 
     # Fetch the first url (which is NTU) and spread from there
     def start_requests(self):
@@ -63,7 +64,7 @@ class FoursquareSpider(Spider):
                 generate_url_venue_detail(venue_obj['venue_id']),
                 venue_obj['venue_id'],
             )
-            print(venue_obj['name'])
+            self.logger.info(venue_obj['name'])
             venue_raw_obj = venue_obj['raw_data']
             if (venue_obj['is_child_explore_parsed'] is False and
                     'location' in venue_raw_obj and
@@ -92,7 +93,7 @@ class FoursquareSpider(Spider):
             )
 
     def parse(self, response, depth, venue_id):
-        print('PARSE ', venue_id)
+        self.logger.info('PARSE ', venue_id)
         # TODO: validate if the data is not in the db
         if response.status == 403:
             raise CloseSpider('Bandwith exceeded')
