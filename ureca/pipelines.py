@@ -7,21 +7,21 @@
 import pymongo
 import pdb
 
+
 class UrecaPipeline(object):
     def process_item(self, item, spider):
         return item
 
 
 class MongoPipeline(object):
-    collection_name = 'parsed_data_raw'
+    collection_name = 'us_raw'
 
     def __init__(self):
-   		self.mongo_host = 'localhost'
-		self.mongo_port = 27017
-		self.mongo_db = 'ureca'
+        self.mongo_uri = 'mongodb://kevin:kevin@155.69.149.160/geodata'
+        self.mongo_db = 'geodata'
 
     def open_spider(self, spider):
-        self.client = pymongo.MongoClient(self.mongo_host, self.mongo_port)
+        self.client = pymongo.MongoClient(self.mongo_uri)
         self.db = self.client[self.mongo_db]
         self.collection = self.db[self.collection_name]
 

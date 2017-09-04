@@ -34,11 +34,10 @@ class FoursquareSpider(Spider):
     MAX_DEPTH = 20
 
     def __init__(self):
-        self.mongo_host = 'localhost'
-        self.mongo_port = 27017
+        self.mongo_uri = 'mongodb://kevin:kevin@155.69.149.160/geodata'
         self.mongo_db = 'geodata'
-        self.collection_name = 'us'
-        self.client = pymongo.MongoClient(self.mongo_host, self.mongo_port)
+        self.collection_name = 'us_raw'
+        self.client = pymongo.MongoClient(self.mongo_uri)
         self.db = self.client[self.mongo_db]
         self.collection = self.db[self.collection_name]
 
