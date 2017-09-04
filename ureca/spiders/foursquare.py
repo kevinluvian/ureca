@@ -12,7 +12,8 @@ from ureca.items import Foursquare
 sql_update_parsed = '''
 UPDATE `parsed_data` SET parsed=true WHERE venue_id=%s;
 '''
-
+# NTU 4b442617f964a5200af225e3
+# google 40870b00f964a5209bf21ee3
 
 def generate_url_venue_detail(venue_id):
     return 'https://api.foursquare.com/v2/venues/{}?client_id=LFZ3GZTEM34B1NTKJMZHNRWICA1GF5CWGJBR5UP503OU00WK&client_secret=EBAFOC3RUESHDWM4XUKCSOCSCUTZ32FN2C2YFRDSAIJT2HEF&v=20170818'.format(venue_id)
@@ -35,8 +36,8 @@ class FoursquareSpider(Spider):
     def __init__(self):
         self.mongo_host = 'localhost'
         self.mongo_port = 27017
-        self.mongo_db = 'ureca'
-        self.collection_name = 'parsed_data_raw'
+        self.mongo_db = 'geodata'
+        self.collection_name = 'us'
         self.client = pymongo.MongoClient(self.mongo_host, self.mongo_port)
         self.db = self.client[self.mongo_db]
         self.collection = self.db[self.collection_name]
@@ -65,7 +66,10 @@ class FoursquareSpider(Spider):
             )
             print(venue_obj['name'])
             venue_raw_obj = venue_obj['raw_data']
-            if venue_obj['is_child_explore_parsed'] is False and 'location' in venue_raw_obj and 'lat' in venue_raw_obj['location'] and 'lng' in venue_raw_obj['location']:
+            if (venue_obj['is_child_explore_parsed'] is False and
+                    'location' in venue_raw_obj and
+                    'lat' in venue_raw_obj['location'] and
+                    'lng' in venue_raw_obj['location']):
                 yield Request(
                     generate_url_explore_venues(
                         venue_raw_obj['location']['lat'],
@@ -80,8 +84,8 @@ class FoursquareSpider(Spider):
                 )
         if venue_count == 0:
             venue = (
-                generate_url_venue_detail('4b442617f964a5200af225e3'),
-                '4b442617f964a5200af225e3',
+                generate_url_venue_detail('40870b00f964a5209bf21ee3'),
+                '40870b00f964a5209bf21ee3',
             )
             yield Request(
                 url=venue[0],
