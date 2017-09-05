@@ -30,4 +30,5 @@ class MongoPipeline(object):
 
     def process_item(self, item, spider):
         self.collection.insert(dict(item))
+        self.db['todo'].remove({'venue_id': item['venue_id']})
         return item
