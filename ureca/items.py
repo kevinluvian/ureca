@@ -23,4 +23,6 @@ class Foursquare(scrapy.Item):
     depth = scrapy.Field(output_processor=TakeFirst())
     is_child_next_venue_parsed = scrapy.Field(output_processor=TakeFirst())
     is_child_explore_parsed = scrapy.Field(output_processor=TakeFirst())
-    pass
+
+    def __str__(self):
+        return ""
