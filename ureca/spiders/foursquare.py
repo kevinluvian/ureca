@@ -32,7 +32,7 @@ class FoursquareSpider(Spider):
     name = 'foursquare'
     allowed_domains = ['foursquare.com']
     handle_httpstatus_list = [403]
-    MAX_DEPTH = 20
+    MAX_DEPTH = 20000000
 
     def __init__(self):
         self.mongo_uri = 'mongodb://kevin:kevin@155.69.149.160/geodata'
