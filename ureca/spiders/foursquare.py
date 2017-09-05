@@ -83,10 +83,12 @@ class FoursquareSpider(Spider):
                     callback=lambda x, depth=venue_obj['depth'], venue_id=venue_obj['venue_id']: self.parse_next_venues(x, depth, venue_id),
                 )
         if venue_count == 0:
-            venue = (
-                generate_url_venue_detail('40870b00f964a5209bf21ee3'),
-                '40870b00f964a5209bf21ee3',
-            )
+            venue_id_list = self.db['todo'].find({})
+            for venue_obj in venue_id_list:
+                venue = (
+                    generate_url_venue_detail(venue_obj['venue_id']),
+                    venue_obj['venue_id'],
+                )
             yield Request(
                 url=venue[0],
                 callback=lambda x, depth=1, venue_id=venue[1]: self.parse(x, depth, venue_id),
