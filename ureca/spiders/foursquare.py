@@ -48,20 +48,24 @@ class FoursquareSpider(Spider):
         self.collection = self.db[self.collection_name]
         self.log_collection = self.db[self.log_collection_name]
 
+    def update_log(self):
+        elapsed_time = time.time() - self.latest_log_time
+        if elapsed_time > 3600:
+            count = self.collection.count()
+            self.log_collection.insert({
+                'elapsed_time': elapsed_time,
+                'date_time': datetime.now(),
+                'item_parsed': count
+            })
+            self.latest_log_time = time.time()
+
     def closed(self, reason):
-        elapsed_time = time.time() - self.started_on
-        count = self.collection.count()
-        self.log_collection.insert({
-            'elapsed_time': elapsed_time,
-            'date_time': datetime.now(),
-            'item_parsed': count
-        })
         self.client.close()
         self.logger.info('reason: {}'.format(reason))
 
     # Fetch the first url (which is NTU) and spread from there
     def start_requests(self):
-        self.started_on = time.time()
+        self.latest_log_time = time.time()
         # TODO: make it the smallest depth and parsed = False trus di FOR
         self.collection.create_index([('depth', pymongo.ASCENDING)], background=True)
         venue_list = self.collection \
@@ -109,6 +113,7 @@ class FoursquareSpider(Spider):
             )
 
     def parse(self, response, depth, venue_id):
+        self.update_log()
         self.logger.info('PARSE {}'.format(venue_id))
         # TODO: validate if the data is not in the db
         if response.status == 403:
@@ -156,6 +161,7 @@ class FoursquareSpider(Spider):
                 pass
 
     def parse_explore_venues(self, response, depth, venue_id):
+        self.update_log()
         if response.status == 403:
             raise CloseSpider('Bandwith exceeded')
         try:
@@ -175,6 +181,7 @@ class FoursquareSpider(Spider):
             pass
 
     def parse_next_venues(self, response, depth, venue_id):
+        self.update_log()
         if response.status == 403:
             raise CloseSpider('Bandwith exceeded')
         try:
@@ -190,6 +197,7 @@ class FoursquareSpider(Spider):
             pass
 
     def update_complete_parse_explore(self, venue_id):
+        self.update_log()
         self.collection.update_one(
             {'venue_id': venue_id},
             {'$set': {'is_child_explore_parsed': True}},
@@ -197,6 +205,7 @@ class FoursquareSpider(Spider):
         )
 
     def update_complete_parse_next(self, venue_id):
+        self.update_log()
         self.collection.update_one(
             {'venue_id': venue_id},
             {'$set': {'is_child_next_venue_parsed': True}},
