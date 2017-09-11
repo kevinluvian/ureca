@@ -60,6 +60,13 @@ class FoursquareSpider(Spider):
             self.latest_log_time = time.time()
 
     def closed(self, reason):
+    	elapsed_time = time.time() - self.latest_log_time
+        count = self.collection.count()
+        self.log_collection.insert({
+            'elapsed_time': elapsed_time,
+            'date_time': datetime.now(),
+            'item_parsed': count
+        })
         self.client.close()
         self.logger.info('reason: {}'.format(reason))
 
