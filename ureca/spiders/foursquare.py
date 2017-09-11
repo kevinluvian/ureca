@@ -50,7 +50,7 @@ class FoursquareSpider(Spider):
 
     def update_log(self):
         elapsed_time = time.time() - self.latest_log_time
-        if elapsed_time > 3600:
+        if elapsed_time > 900:
             count = self.collection.count()
             self.log_collection.insert({
                 'elapsed_time': elapsed_time,
