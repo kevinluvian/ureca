@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-import pdb
+# import pdb
 import json
 import pymongo
-import logging
+# import logging
 
 from scrapy import Spider, Request
 from scrapy.loader import ItemLoader
 from scrapy.exceptions import CloseSpider
 from ureca.items import Foursquare
+import time
+import datetime
 
 
 sql_update_parsed = '''
@@ -15,6 +17,7 @@ UPDATE `parsed_data` SET parsed=true WHERE venue_id=%s;
 '''
 # NTU 4b442617f964a5200af225e3
 # google 40870b00f964a5209bf21ee3
+
 
 def generate_url_venue_detail(venue_id):
     return 'https://api.foursquare.com/v2/venues/{}?client_id=LFZ3GZTEM34B1NTKJMZHNRWICA1GF5CWGJBR5UP503OU00WK&client_secret=EBAFOC3RUESHDWM4XUKCSOCSCUTZ32FN2C2YFRDSAIJT2HEF&v=20170818'.format(venue_id)
@@ -38,16 +41,27 @@ class FoursquareSpider(Spider):
         self.mongo_uri = 'mongodb://kevin:kevin@155.69.149.160/geodata'
         self.mongo_db = 'geodata'
         self.collection_name = 'us_raw'
+        self.log_collection_name = 'log'
+
         self.client = pymongo.MongoClient(self.mongo_uri)
         self.db = self.client[self.mongo_db]
         self.collection = self.db[self.collection_name]
+        self.log_collection = self.db[self.log_collection_name]
 
     def closed(self, reason):
+        elapsed_time = time.time() - self.started_on
+        count = self.collection.count()
+        self.log_collection.insert({
+            'elapsed_time': elapsed_time,
+            'date_time': datetime.now(),
+            'item_parsed': count
+        })
         self.client.close()
         self.logger.info('reason: {}'.format(reason))
 
     # Fetch the first url (which is NTU) and spread from there
     def start_requests(self):
+        self.started_on = time.time()
         # TODO: make it the smallest depth and parsed = False trus di FOR
         self.collection.create_index([('depth', pymongo.ASCENDING)], background=True)
         venue_list = self.collection \
