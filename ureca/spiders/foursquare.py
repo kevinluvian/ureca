@@ -52,7 +52,7 @@ class FoursquareSpider(Spider):
         elapsed_time = time.time() - self.latest_log_time
         self.logger.info('elapsed time: {}'.format(elapsed_time))
         if elapsed_time > 60:
-        	self.logger.info('insert log_collection')
+            self.logger.info('insert log_collection')
             count = self.collection.count()
             self.log_collection.insert({
                 'elapsed_time': elapsed_time,
@@ -62,8 +62,8 @@ class FoursquareSpider(Spider):
             self.latest_log_time = time.time()
 
     def closed(self, reason):
-    	elapsed_time = time.time() - self.latest_log_time
-    	self.logger.info('stopped, elapsed time: {}'.format(elapsed_time))
+        elapsed_time = time.time() - self.latest_log_time
+        self.logger.info('stopped, elapsed time: {}'.format(elapsed_time))
         count = self.collection.count()
         self.log_collection.insert({
             'elapsed_time': elapsed_time,
