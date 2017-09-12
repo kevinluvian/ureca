@@ -9,7 +9,7 @@ from scrapy.loader import ItemLoader
 from scrapy.exceptions import CloseSpider
 from ureca.items import Foursquare
 import time
-import datetime
+from datetime import datetime
 
 
 sql_update_parsed = '''
