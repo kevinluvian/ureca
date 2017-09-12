@@ -57,7 +57,8 @@ class FoursquareSpider(Spider):
             self.log_collection.insert({
                 'elapsed_time': elapsed_time,
                 'date_time': datetime.now(),
-                'item_parsed': count
+                'item_parsed': count,
+                'reason': 'time update'
             })
             self.latest_log_time = time.time()
 
@@ -68,7 +69,8 @@ class FoursquareSpider(Spider):
         self.log_collection.insert({
             'elapsed_time': elapsed_time,
             'date_time': datetime.now(),
-            'item_parsed': count
+            'item_parsed': count,
+            'reason': 'stopped'
         })
         self.client.close()
         self.logger.info('reason: {}'.format(reason))
