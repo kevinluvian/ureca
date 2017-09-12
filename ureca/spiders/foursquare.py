@@ -41,7 +41,7 @@ class FoursquareSpider(Spider):
         self.mongo_uri = 'mongodb://kevin:kevin@155.69.149.160/geodata'
         self.mongo_db = 'geodata'
         self.collection_name = 'us_raw'
-        self.log_collection_name = 'log'
+        self.log_collection_name = 'log_parser'
 
         self.client = pymongo.MongoClient(self.mongo_uri)
         self.db = self.client[self.mongo_db]
@@ -50,7 +50,9 @@ class FoursquareSpider(Spider):
 
     def update_log(self):
         elapsed_time = time.time() - self.latest_log_time
-        if elapsed_time > 900:
+        self.logger.info('elapsed time: {}'.format(elapsed_time))
+        if elapsed_time > 60:
+        	self.logger.info('insert log_collection')
             count = self.collection.count()
             self.log_collection.insert({
                 'elapsed_time': elapsed_time,
@@ -61,6 +63,7 @@ class FoursquareSpider(Spider):
 
     def closed(self, reason):
     	elapsed_time = time.time() - self.latest_log_time
+    	self.logger.info('stopped, elapsed time: {}'.format(elapsed_time))
         count = self.collection.count()
         self.log_collection.insert({
             'elapsed_time': elapsed_time,
