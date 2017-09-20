@@ -50,8 +50,8 @@ class FoursquareSpider(Spider):
 
     def update_log(self):
         elapsed_time = time.time() - self.latest_log_time
-        self.logger.info('elapsed time: {}'.format(elapsed_time))
         if elapsed_time > 900:
+            self.logger.info('elapsed time: {}'.format(elapsed_time))
             self.logger.info('insert log_collection')
             count = self.collection.count()
             self.log_collection.insert({
@@ -119,10 +119,10 @@ class FoursquareSpider(Spider):
                 generate_url_venue_detail(venue_obj['venue_id']),
                 venue_obj['venue_id'],
             )
-        yield Request(
-            url=venue[0],
-            callback=lambda x, depth=1, venue_id=venue[1]: self.parse(x, depth, venue_id),
-        )
+            yield Request(
+                url=venue[0],
+                callback=lambda x, depth=1, venue_id=venue[1]: self.parse(x, depth, venue_id),
+            )
 
     def parse(self, response, depth, venue_id):
         self.update_log()
