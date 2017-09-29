@@ -80,14 +80,6 @@ class FoursquareSpider(Spider):
         self.latest_log_time = time.time()
         # TODO: make it the smallest depth and parsed = False trus di FOR
         self.collection.create_index([('depth', pymongo.ASCENDING)], background=True)
-        venue_list = self.collection \
-            .find({
-                '$or': [
-                    {'is_child_next_venue_parsed': False},
-                    {'is_child_explore_parsed': False}
-                ]
-            }) \
-            .sort('depth', 1)
         
         venue_id_list = self.db['todo'].find({})
         for venue_obj in venue_id_list:
@@ -100,6 +92,14 @@ class FoursquareSpider(Spider):
                 callback=lambda x, depth=1, venue_id=venue[1]: self.parse(x, depth, venue_id),
             )
 
+        venue_list = self.collection \
+            .find({
+                '$or': [
+                    {'is_child_next_venue_parsed': False},
+                    {'is_child_explore_parsed': False}
+                ]
+            }) \
+            .sort('depth', 1)
         venue_count = venue_list.count()
         for venue_obj in venue_list:
             venue = (
